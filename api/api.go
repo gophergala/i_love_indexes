@@ -17,6 +17,7 @@ import (
 func NewAPI() http.Handler {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/indices", AddIndexOf).Methods("POST")
+	router.HandleFunc("/api/search", SearchIndexItems).Methods("GET")
 	stack := negroni.New(negroni.NewLogger(), negroni.NewRecovery())
 	stack.UseHandler(router)
 	return stack
@@ -85,4 +86,19 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.URL, index.Id})
 	res.WriteHeader(201)
 	json.NewEncoder(res).Encode(&index)
+}
+
+func SearchIndexItems(res http.ResponseWriter, req *http.Request) {
+	query := req.URL.Query().Get("search")
+
+	if query == "" {
+		res.WriteHeader(422)
+		err := NewUnprocessableEntityError()
+		err.Add("search", "can't be blank")
+		json.NewEncoder(res).Encode(&err)
+		return
+	}
+
+	indexItems := elasticsearch.SearchIndexItemsPerName(query)
+	json.NewEncoder(res).Encode(&indexItems)
 }

@@ -12,7 +12,6 @@ $ ->
   # Vertically center header
   header = $('#header')
   header.css('margin-top', $(window).height() / 2 - header.height() / 2)
-  $('body').css('background-color', '#eee')
 
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
@@ -53,18 +52,18 @@ $ ->
           url: '/api/search'
           data: {search: query}
           success: (data) ->
+            tableBody.empty()
             data.forEach insertIntoTableBody if data instanceof Array
             header.animate
               'margin-top': 0
               'slow'
-            $('body').animate 'background-color': 'white'
-            table.slideDown()
+            table.fadeIn()
 
         @timeoutHandle = 0
       , 300
   )()
 
-  addIndex = (url) ->
+  addIndexOf = (url) ->
     $.ajax
       type: "POST"
       contentType: "application/json; charset=utf-8"

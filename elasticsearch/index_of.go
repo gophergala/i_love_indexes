@@ -70,3 +70,27 @@ func (i *IndexItem) GetId() string {
 func (i *IndexItem) SetId(id string) {
 	i.Id = id
 }
+
+func SearchIndexItemsPerName(name string) []IndexItem {
+	// Fuzzy search query
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"fuzzy_like_this_field": map[string]interface{}{
+				"name": map[string]string{
+					"like_text": name,
+				},
+			},
+		},
+	}
+
+	res, err := defaultConn.Search(defaultIndex, "index_item", nil, query)
+	if err != nil {
+		fmt.Println("fuzzy search err:", err)
+	}
+
+	for _, h := range res.Hits.Hits {
+		fmt.Println(h)
+	}
+
+	return []IndexItem{}
+}
