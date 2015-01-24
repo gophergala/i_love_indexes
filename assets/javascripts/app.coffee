@@ -31,10 +31,16 @@ $ ->
     row = $("<tr>")
     fields.forEach (field) ->
       td = $("<td>")
-      itemText = indexItem[field]
       if field == "last_modified_at"
-        itemText = moment(itemText).fromNow()
-      td.text itemText
+        td.html moment(item).fromNow()
+      else if field == "url"
+        item = $("<a>").attr("href", indexItem[field]).text(indexItem[field])
+        td.append item
+      else if field == "name"
+        item = $("<a>").attr("href", indexItem["url"]).text(indexItem[field])
+        td.append item
+      else
+        td.html indexItem[field]
       row.append td
     tbody.append row
 
