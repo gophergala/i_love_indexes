@@ -16,7 +16,7 @@ $ ->
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
     value = e.target.value
-    sendSearch value
+    sendSearch value if value
 
   searchForm.on "submit", (e) ->
     e.preventDefault()
@@ -27,13 +27,13 @@ $ ->
 
   insertIntoTableBody = (data) ->
     row = $("<tr>")
-    fields = ['Name', 'Last modified', 'Size', 'Description']
+    fields = ['name', 'last_modified_at', 'size']
     fields.forEach (field) ->
       td = $("<td>")
       td.text data[field]
-      row.appendChild td
+      row.append td
 
-    tableBody.appendChild row
+    tableBody.append row
 
   # Send search query with a delay
   sendSearch = (() ->
@@ -50,8 +50,10 @@ $ ->
         $.ajax
           type: "GET"
           url: '/api/search'
+          dataType: 'json'
           data: {search: query}
           success: (data) ->
+            console.log data
             tableBody.empty()
             data.forEach insertIntoTableBody if data instanceof Array
             header.animate

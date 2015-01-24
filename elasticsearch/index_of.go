@@ -52,7 +52,7 @@ func FindIndexOf(id string) (*IndexOf, error) {
 }
 
 func (i *IndexOf) Index() error {
-	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("host", i.Host).Term("scheme", i.Scheme)).Result(defaultConn)
+	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("host", i.Host)).Result(defaultConn)
 	if err != nil {
 		if err == elastigo.RecordNotFound {
 			return Index(i)
@@ -102,7 +102,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 		},
 	}
 
-	var items []*IndexItem
+	items := []*IndexItem{}
 	var item *IndexItem
 
 	res, err := defaultConn.Search(defaultIndex, "index_item", nil, query)
