@@ -1,22 +1,31 @@
 package elasticsearch
 
 import (
+	"encoding/json"
 	"log"
 	"net/url"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	elastigo "github.com/mattbaird/elastigo/lib"
+	"gopkg.in/errgo.v1"
 )
 
 var (
-	defaultConn *elastigo.Conn
+	defaultIndex = "iloveindexes"
+	defaultConn  *elastigo.Conn
 )
 
 func init() {
 	initDefaultConn()
-	initIndexes()
+}
+
+type Document interface {
+	GetId() string
+	SetId(id string)
+	Type() string
 }
 
 func initDefaultConn() {
@@ -34,15 +43,51 @@ func initDefaultConn() {
 			Port:           splittedHost[1],
 			DecayDuration:  time.Duration(elastigo.DefaultDecayDuration * time.Second),
 		}
+	} else {
+		defaultConn = elastigo.NewConn()
 	}
 }
 
-func initIndexes() {
-	res, err := defaultConn.CreateIndex("i<3indexes")
+func index(_type string, id string, args map[string]interface{}, data interface{}) (elastigo.BaseResponse, error) {
+	return defaultConn.Index(defaultIndex, _type, id, args, data)
+}
+
+func Index(d Document) error {
+	res, err := index(d.Type(), d.GetId(), nil, &d)
 	if err != nil {
-		log.Fatalln(err)
+		errgo.Mask(err)
 	}
-	if res.Exists {
-		log.Println("Index i<3indexes already exists")
+	if res.Created {
+		d.SetId(res.Id)
 	}
+	return nil
+}
+
+func ListDocuments(_struct Document) ([]Document, error) {
+	res, err := list(_struct.Type())
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+
+	t := reflect.TypeOf(_struct).Elem()
+	doc := reflect.New(t).Interface().(Document)
+
+	var out []Document
+	for _, h := range res.Hits.Hits {
+		err := json.Unmarshal(*h.Source, &doc)
+		if err != nil {
+			return nil, errgo.Mask(err)
+		}
+		doc.SetId(h.Id)
+		out = append(out, doc)
+	}
+	return out, nil
+}
+
+func list(_type string) (*elastigo.SearchResult, error) {
+	res, err := elastigo.Search(defaultIndex).Type(_type).Result(defaultConn)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	return res, nil
 }

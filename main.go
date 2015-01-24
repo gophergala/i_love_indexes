@@ -7,10 +7,12 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/GopherGala/i-love-indexes/api"
 	"github.com/GopherGala/i-love-indexes/crawler"
 	"github.com/Scalingo/go-workers"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"github.com/shaoshing/train"
 )
 
 var (
@@ -29,14 +31,25 @@ func main() {
 		mainCrawler()
 	} else if *isTester {
 		mainTester()
+	} else {
+		log.Fatalln("Invalid type of process, precis -web, -crawler or -tester")
 	}
-	log.Fatalln("Invalid type of process")
+}
+
+func setupTrain(router *mux.Router) {
+	train.SetFileServer()
+	router.Handle(train.Config.AssetsUrl+"{any:.*}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		train.ServeRequest(w, r)
+	}))
 }
 
 func mainWebServer() {
-	stack := negroni.Classic()
 	router := mux.NewRouter()
-	router.Handle("/{any:.*}", stack)
+	router.Handle("/api/{any:.*}", api.NewAPI())
+	setupTrain(router)
+
+	staticHandler := negroni.Classic()
+	router.Handle("/{any:.*}", staticHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
