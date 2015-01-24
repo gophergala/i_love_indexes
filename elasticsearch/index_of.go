@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -15,7 +16,9 @@ var (
 
 type IndexOf struct {
 	Id        string    `json:"_id,omitempty"`
-	URL       string    `json:"url"`
+	Host      string    `json:"host"`
+	Scheme    string    `json:"scheme"`
+	Path      string    `json:"path"`
 	CrawledAt time.Time `json:"crawled_at"`
 }
 
@@ -31,15 +34,31 @@ func (i *IndexOf) SetId(id string) {
 	i.Id = id
 }
 
+func (i *IndexOf) URL() string {
+	return i.Scheme + "://" + i.Host + i.Path
+}
+
+func FindIndexOf(id string) (*IndexOf, error) {
+	res, err := defaultConn.Get(defaultIndex, "index_of", id, nil)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	var indexOf *IndexOf
+	err = json.Unmarshal(*res.Source, &indexOf)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	return indexOf, nil
+}
+
 func (i *IndexOf) Index() error {
-	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("url", i.URL)).Result(defaultConn)
+	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("host", i.Host).Term("scheme", i.Scheme)).Result(defaultConn)
 	if err != nil {
 		if err == elastigo.RecordNotFound {
 			return Index(i)
 		}
 		return errgo.Mask(err)
 	}
-	fmt.Println(res.Hits)
 	if res.Hits.Len() == 1 {
 		return AlreadyIndexedErr
 	}
@@ -71,7 +90,7 @@ func (i *IndexItem) SetId(id string) {
 	i.Id = id
 }
 
-func SearchIndexItemsPerName(name string) []IndexItem {
+func SearchIndexItemsPerName(name string) []*IndexItem {
 	// Fuzzy search query
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
@@ -83,14 +102,18 @@ func SearchIndexItemsPerName(name string) []IndexItem {
 		},
 	}
 
+	var items []*IndexItem
+	var item *IndexItem
+
 	res, err := defaultConn.Search(defaultIndex, "index_item", nil, query)
 	if err != nil {
 		fmt.Println("fuzzy search err:", err)
 	}
 
 	for _, h := range res.Hits.Hits {
-		fmt.Println(h)
+		json.Unmarshal(*h.Source, &item)
+		items = append(items, item)
 	}
 
-	return []IndexItem{}
+	return items
 }

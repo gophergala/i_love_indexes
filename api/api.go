@@ -17,14 +17,23 @@ import (
 func NewAPI() http.Handler {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/indices", AddIndexOf).Methods("POST")
+	router.HandleFunc("/api/indices", ListIndexOf).Methods("GET")
 	router.HandleFunc("/api/search", SearchIndexItems).Methods("GET")
 	stack := negroni.New(negroni.NewLogger(), negroni.NewRecovery())
 	stack.UseHandler(router)
 	return stack
 }
 
+type BadRequestError struct {
+	err string `json:"error"`
+}
+
 type UnprocessableEntityError struct {
 	Errors map[string][]string `json:"errors"`
+}
+
+func NewBadRequestError(err string) *BadRequestError {
+	return &BadRequestError{err}
 }
 
 func NewUnprocessableEntityError() *UnprocessableEntityError {
@@ -39,6 +48,19 @@ func (err *UnprocessableEntityError) Add(field string, errorMessage string) {
 
 type AddIndexOfParams struct {
 	URL string `json:"url"`
+}
+
+func ListIndexOf(res http.ResponseWriter, req *http.Request) {
+	indices, err := elasticsearch.ListDocuments((*elasticsearch.IndexOf)(nil))
+	if err != nil {
+		res.WriteHeader(500)
+		log.Println(errgo.Details(err))
+		fmt.Fprintf(res, errgo.Details(err))
+		return
+	}
+
+	res.WriteHeader(200)
+	json.NewEncoder(res).Encode(&indices)
 }
 
 func AddIndexOf(res http.ResponseWriter, req *http.Request) {
@@ -67,7 +89,7 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	index := &elasticsearch.IndexOf{URL: u.Host}
+	index := &elasticsearch.IndexOf{Host: u.Host, Scheme: u.Scheme, Path: u.Path}
 	err = index.Index()
 	if err != nil {
 		if err == elasticsearch.AlreadyIndexedErr {
@@ -83,7 +105,7 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.URL, index.Id})
+	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.Id})
 	res.WriteHeader(201)
 	json.NewEncoder(res).Encode(&index)
 }
@@ -92,13 +114,13 @@ func SearchIndexItems(res http.ResponseWriter, req *http.Request) {
 	query := req.URL.Query().Get("search")
 
 	if query == "" {
-		res.WriteHeader(422)
-		err := NewUnprocessableEntityError()
-		err.Add("search", "can't be blank")
+		res.WriteHeader(400)
+		err := NewBadRequestError("requires 'query' params")
 		json.NewEncoder(res).Encode(&err)
 		return
 	}
 
+	res.WriteHeader(200)
 	indexItems := elasticsearch.SearchIndexItemsPerName(query)
 	json.NewEncoder(res).Encode(&indexItems)
 }

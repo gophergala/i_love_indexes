@@ -22,7 +22,7 @@ $ ->
     e.preventDefault()
 
   addURL.on "submit", (e) ->
-    addIndex urlInput.val()
+    addIndexOf urlInput.val()
     e.preventDefault()
 
   insertIntoTableBody = (data) ->
