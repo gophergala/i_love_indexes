@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/GopherGala/i-love-indexes/elasticsearch"
+	"github.com/GopherGala/i_love_indexes/elasticsearch"
 	"github.com/Scalingo/go-workers"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
