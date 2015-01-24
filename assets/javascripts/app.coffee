@@ -1,8 +1,9 @@
 $ ->
   searchInput = $('input[type=search]')
+  searchForm = $("#search-form")
   tableBody = $('table tbody')
   urlInput = $('input[type=url]')
-  addButton = $('button')
+  addURL = $('#add-url')
 
   # Hide table
   table = $('table')
@@ -18,8 +19,12 @@ $ ->
     value = e.target.value
     sendSearch value
 
-  addButton.on "click", (e) ->
+  searchForm.on "submit", (e) ->
+    e.preventDefault()
+
+  addURL.on "submit", (e) ->
     addIndex urlInput.val()
+    e.preventDefault()
 
   insertIntoTableBody = (data) ->
     row = $("<tr>")
@@ -56,7 +61,6 @@ $ ->
             table.slideDown()
 
         @timeoutHandle = 0
-        console.log 'SENT !'
       , 300
   )()
 
@@ -68,4 +72,17 @@ $ ->
       url: '/api/indices'
       data: JSON.stringify url: url
       success: (data) ->
-        # Do something
+        $("#add-url .error").addClass("hidden")
+        $("#add-url .error").val("")
+      error: (response, error) ->
+        errSpan = $("#add-url .error")
+        if response.status == 500
+          errSpan.html("Internal Error, sorry :-/")
+        else if response.status == 422
+          errors = response.responseJSON.errors
+          out = "<ul>"
+          Object.keys(errors).forEach (key) ->
+            errors[key].forEach (err) ->
+              out += "<li>" + key + " -> " + err + "</li>"
+          out += "<ul>"
+          errSpan.html(out)

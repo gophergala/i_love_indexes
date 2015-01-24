@@ -1,6 +1,17 @@
 package elasticsearch
 
-import "time"
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	elastigo "github.com/mattbaird/elastigo/lib"
+	"gopkg.in/errgo.v1"
+)
+
+var (
+	AlreadyIndexedErr = errors.New("index of is already indexed")
+)
 
 type IndexOf struct {
 	Id        string    `json:"_id,omitempty"`
@@ -18,6 +29,21 @@ func (i *IndexOf) GetId() string {
 
 func (i *IndexOf) SetId(id string) {
 	i.Id = id
+}
+
+func (i *IndexOf) Index() error {
+	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("url", i.URL)).Result(defaultConn)
+	if err != nil {
+		if err == elastigo.RecordNotFound {
+			return Index(i)
+		}
+		return errgo.Mask(err)
+	}
+	fmt.Println(res.Hits)
+	if res.Hits.Len() == 1 {
+		return AlreadyIndexedErr
+	}
+	return Index(i)
 }
 
 type IndexItem struct {

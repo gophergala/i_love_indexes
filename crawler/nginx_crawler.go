@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"path/filepath"
 	"regexp"
@@ -23,7 +24,12 @@ func (crawler *NginxCrawler) Crawl() error {
 	itemsToIndex := make(chan *elasticsearch.IndexItem)
 	go func() {
 		for item := range itemsToIndex {
-			fmt.Println(item)
+			item.IndexOfId = crawler.IndexOfId
+			err := elasticsearch.Index(item)
+			if err != nil {
+				log.Println(err)
+			}
+			fmt.Println(item.Id)
 		}
 	}()
 
@@ -33,7 +39,6 @@ func (crawler *NginxCrawler) Crawl() error {
 		// Run through each row and extract data
 		pre := doc.Find("pre").First()
 		as := pre.Find("a").Nodes
-		fmt.Println(pre.Text())
 		entries := strings.Split(pre.Text(), "\n")
 		var err error
 		for i, entry := range entries {

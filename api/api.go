@@ -3,7 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/GopherGala/i_love_indexes/elasticsearch"
 	"github.com/Scalingo/go-workers"
@@ -21,17 +23,17 @@ func NewAPI() http.Handler {
 }
 
 type UnprocessableEntityError struct {
-	errors map[string][]string `json:"errors"`
+	Errors map[string][]string `json:"errors"`
 }
 
 func NewUnprocessableEntityError() *UnprocessableEntityError {
 	err := &UnprocessableEntityError{}
-	err.errors = make(map[string][]string)
+	err.Errors = make(map[string][]string)
 	return err
 }
 
 func (err *UnprocessableEntityError) Add(field string, errorMessage string) {
-	err.errors[field] = append(err.errors[field], errorMessage)
+	err.Errors[field] = append(err.Errors[field], errorMessage)
 }
 
 type AddIndexOfParams struct {
@@ -55,10 +57,27 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	index := &elasticsearch.IndexOf{URL: params.URL}
-	err = elasticsearch.Index(index)
+	u, err := url.Parse(params.URL)
 	if err != nil {
+		res.WriteHeader(422)
+		err := NewUnprocessableEntityError()
+		err.Add("url", "is not an URL")
+		json.NewEncoder(res).Encode(&err)
+		return
+	}
+
+	index := &elasticsearch.IndexOf{URL: u.Host}
+	err = index.Index()
+	if err != nil {
+		if err == elasticsearch.AlreadyIndexedErr {
+			res.WriteHeader(422)
+			err := NewUnprocessableEntityError()
+			err.Add("url", "already taken")
+			json.NewEncoder(res).Encode(&err)
+			return
+		}
 		res.WriteHeader(500)
+		log.Println(errgo.Details(err))
 		fmt.Fprintf(res, errgo.Details(err))
 		return
 	}

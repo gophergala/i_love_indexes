@@ -14,8 +14,8 @@ func CrawlWorker(msg *workers.Msg) {
 		return
 	}
 	url := params[0].(string)
-	// id := params[0].(string)
-	crawler, err := CrawlerFromUrl(url)
+	id := params[1].(string)
+	crawler, err := CrawlerFromUrl(url, id)
 	if err != nil {
 		log.Println("failed to get crawler", errgo.Details(err))
 		return

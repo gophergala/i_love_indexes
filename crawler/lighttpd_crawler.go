@@ -1,7 +1,6 @@
 package crawler
 
 import (
-	"fmt"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -19,7 +18,8 @@ func (crawler *LighttpdCrawler) Crawl() error {
 	itemsToIndex := make(chan *elasticsearch.IndexItem)
 	go func() {
 		for item := range itemsToIndex {
-			fmt.Println(item)
+			item.IndexOfId = crawler.IndexOfId
+			elasticsearch.Index(item)
 		}
 	}()
 
