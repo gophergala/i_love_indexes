@@ -1,8 +1,6 @@
 package crawler
 
 import (
-	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/GopherGala/i_love_indexes/elasticsearch"
@@ -15,14 +13,6 @@ type ApacheCrawler struct {
 
 func (crawler *ApacheCrawler) Crawl() error {
 	errs := make(chan error)
-	itemsToIndex := make(chan *elasticsearch.IndexItem)
-	go func() {
-		for item := range itemsToIndex {
-			item.IndexOfId = crawler.IndexOfId
-			elasticsearch.Index(item)
-		}
-	}()
-
 	go func() {
 		doc := crawler.Doc
 
@@ -56,9 +46,7 @@ func (crawler *ApacheCrawler) Crawl() error {
 				}
 
 				if headers[i] == "Name" {
-					href, _ := s.Find("a").First().Attr("href")
-					item.Path, _ = url.QueryUnescape(href)
-					item.Name = filepath.Base(item.Path)
+					item.Path, _ = s.Find("a").First().Attr("href")
 				} else if headers[0] == "Size" {
 					item.Size = ParseSize(text)
 
@@ -71,9 +59,10 @@ func (crawler *ApacheCrawler) Crawl() error {
 					item.LastModifiedAt = date
 				}
 			})
-			itemsToIndex <- item
+			crawler.itemsToIndex <- item
 		})
-		close(itemsToIndex)
+
+		crawler.End()
 		close(errs)
 	}()
 

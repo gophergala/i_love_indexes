@@ -1,17 +1,19 @@
 $ ->
   searchInput = $('input[type=search]')
   searchForm = $("#search-form")
-  tableBody = $('table tbody')
+  resultsTableBody = $('#results table tbody')
+  indicesTableBody = $('#indices table tbody')
   urlInput = $('input[type=url]')
   addURL = $('#add-url')
+  listURLsButton = $('#add-url button')
 
   # Hide table
-  table = $('table')
-  table.toggle()
+  indicesTable = $('#indices')
+  resultsTable = $('#results')
 
   # Vertically center header
   header = $('#header')
-  header.css('margin-top', $(window).height() / 2 - header.height() / 2)
+  header.css('margin-top', $(window).height() / 2 - header.height())
 
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
@@ -25,18 +27,32 @@ $ ->
     addIndexOf urlInput.val()
     e.preventDefault()
 
-  insertIntoTableBody = (indexItem) ->
+  insertIntoTableBody = (tbody, indexItem, fields) ->
     row = $("<tr>")
-    fields = ['name', 'last_modified_at', 'size']
-    fields.forEach (field, index) ->
+    fields.forEach (field) ->
       td = $("<td>")
       itemText = indexItem[field]
-      if index == 1
+      if field == "last_modified_at"
         itemText = moment(itemText).fromNow()
       td.text itemText
       row.append td
+    tbody.append row
 
-    tableBody.append row
+  listURLsButton.on "click", (e) ->
+    $.ajax
+      type: "GET"
+      url: '/api/indices'
+      dataType: 'json'
+      success: (data) ->
+        indicesTableBody.empty()
+        data.forEach (elem) ->
+          url = elem.scheme + "://" + elem.host + elem.path
+          insertIntoTableBody indicesTableBody, {url: url}, ["url"]
+        header.animate
+          'margin-top': 0
+          'slow'
+        resultsTable.fadeOut ->
+          indicesTable.fadeIn()
 
   # Send search query with a delay
   sendSearch = (() ->
@@ -56,13 +72,15 @@ $ ->
           dataType: 'json'
           data: {search: query}
           success: (data) ->
-            console.log data
-            tableBody.empty()
-            data.forEach insertIntoTableBody if data instanceof Array
+            resultsTableBody.empty()
+            data.forEach (elem) ->
+              insertIntoTableBody resultsTableBody, elem, ['name', 'last_modified_at', 'size']
             header.animate
               'margin-top': 0
               'slow'
-            table.fadeIn()
+            resultsTable.css("display", "block")
+            indicesTable.fadeOut ->
+              resultsTable.fadeIn()
 
         @timeoutHandle = 0
       , 300

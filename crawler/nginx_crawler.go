@@ -1,10 +1,6 @@
 package crawler
 
 import (
-	"fmt"
-	"log"
-	"net/url"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -21,18 +17,6 @@ var (
 
 func (crawler *NginxCrawler) Crawl() error {
 	errs := make(chan error)
-	itemsToIndex := make(chan *elasticsearch.IndexItem)
-	go func() {
-		for item := range itemsToIndex {
-			item.IndexOfId = crawler.IndexOfId
-			err := elasticsearch.Index(item)
-			if err != nil {
-				log.Println(err)
-			}
-			fmt.Println(item.Id)
-		}
-	}()
-
 	go func() {
 		doc := crawler.Doc
 
@@ -47,8 +31,7 @@ func (crawler *NginxCrawler) Crawl() error {
 				continue
 			}
 			item := &elasticsearch.IndexItem{}
-			item.Path, _ = url.QueryUnescape(as[i].Attr[0].Val)
-			item.Name = filepath.Base(item.Path)
+			item.Path = as[i].Attr[0].Val
 			if strings.Contains(entry, "../") {
 				continue
 			}
@@ -58,10 +41,10 @@ func (crawler *NginxCrawler) Crawl() error {
 				errs <- err
 			}
 			item.Size = mustInt64(fields[1])
-			itemsToIndex <- item
+			crawler.itemsToIndex <- item
 		}
 
-		close(itemsToIndex)
+		crawler.End()
 		close(errs)
 	}()
 	return <-errs

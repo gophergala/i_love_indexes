@@ -70,10 +70,10 @@ func ListDocuments(_struct Document) ([]Document, error) {
 	}
 
 	t := reflect.TypeOf(_struct).Elem()
-	doc := reflect.New(t).Interface().(Document)
 
 	var out []Document
 	for _, h := range res.Hits.Hits {
+		doc := reflect.New(t).Interface().(Document)
 		err := json.Unmarshal(*h.Source, &doc)
 		if err != nil {
 			return nil, errgo.Mask(err)
