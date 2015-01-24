@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/GopherGala/i-love-indexes/api"
-	"github.com/GopherGala/i-love-indexes/crawler"
+	"github.com/GopherGala/i_love_indexes/api"
+	"github.com/GopherGala/i_love_indexes/crawler"
 	"github.com/Scalingo/go-workers"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
