@@ -36,6 +36,8 @@ func NewCrawler(indexOf *elasticsearch.IndexOf) (Crawler, error) {
 		IndexOf:      indexOf,
 		Doc:          doc,
 	}
+	go baseCrawler.Start()
+
 	if nginxServerRegexp.MatchString(server) {
 		return &NginxCrawler{baseCrawler}, nil
 	} else if lighthttpdServerRegexp.MatchString(server) {

@@ -14,6 +14,10 @@ type BaseCrawler struct {
 	Doc          *goquery.Document
 }
 
+func (crawler *BaseCrawler) Start() {
+	crawler.indexResults()
+}
+
 func (crawler *BaseCrawler) End() {
 	close(crawler.itemsToIndex)
 }
