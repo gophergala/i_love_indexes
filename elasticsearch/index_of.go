@@ -21,14 +21,16 @@ func (i *IndexOf) SetId(id string) {
 }
 
 type IndexItem struct {
-	Id          string    `json:"_id,omitempty"`
-	IndexOfId   string    `json:"index_of_id"`
-	Name        string    `json:"name"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Size        int64     `json:"size,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Path        string    `json:"path"`
-	LastSeenAt  time.Time `json:"last_seen_at"`
+	Id             string    `json:"_id,omitempty"`
+	IndexOfId      string    `json:"index_of_id"`
+	Name           string    `json:"name"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Size           int64     `json:"size,omitempty"`
+	MIMEType       string    `json:"mime_type"`
+	Description    string    `json:"description,omitempty"`
+	Path           string    `json:"path"`
+	LastSeenAt     time.Time `json:"last_seen_at"`
+	LastModifiedAt time.Time `json:"last_modified_at"`
 }
 
 func (i *IndexItem) Type() string {

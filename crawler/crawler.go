@@ -1,60 +1,46 @@
 package crawler
 
 import (
-	"fmt"
-	"strings"
+	"net/http"
+	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
+	"gopkg.in/errgo.v1"
 )
 
-func Crawl(url string) {
-	doc, err := goquery.NewDocument(url)
+var (
+	nginxServerRegexp      = regexp.MustCompile(`^nginx.*$`)
+	apacheServerRegexp     = regexp.MustCompile(`^Apache.*$`)
+	lighthttpdServerRegexp = regexp.MustCompile(`^lighttpd.*$`)
+)
+
+type Crawler interface {
+	Crawl() error
+}
+
+type BaseCrawler struct {
+	Doc *goquery.Document
+}
+
+func CrawlerFromUrl(url string) (Crawler, error) {
+	res, err := http.Get(url)
 	if err != nil {
-		fmt.Println("goquery:", err)
+		return nil, errgo.Mask(err)
 	}
 
-	var fields []string
+	doc, err := goquery.NewDocumentFromResponse(res)
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
 
-	// Find table header and determine available fields
-	doc.Find("tr th").Each(func(i int, s *goquery.Selection) {
-		text := strings.TrimSpace(s.Text())
-
-		if s.Children().Is("img") {
-			fields = append(fields, "img")
-		} else if text != "" {
-			fields = append(fields, text)
-		}
-	})
-
-	var items []map[string]string
-
-	// Run through each row and extract data
-	doc.Find("tr").Each(func(i int, s *goquery.Selection) {
-		tds := s.Find("td")
-
-		// Row is empty
-		if text := strings.TrimSpace(tds.Text()); text == "" {
-			return
-		}
-
-		// Row has incorrect structure
-		if tds.Size() != len(fields) {
-			return
-		}
-
-		// Row has correct structure
-		data := map[string]string{}
-		tds.Each(func(i int, s *goquery.Selection) {
-			// Ignore the img field
-			if fields[i] == "img" {
-				return
-			}
-
-			data[fields[i]] = s.Text()
-		})
-		items = append(items, data)
-
-		fmt.Println(data)
-		fmt.Println("=============")
-	})
+	server := res.Header.Get("Server")
+	if nginxServerRegexp.MatchString(server) {
+		return &NginxCrawler{BaseCrawler{doc}}, nil
+	} else if lighthttpdServerRegexp.MatchString(server) {
+		return &LighttpdCrawler{BaseCrawler{doc}}, nil
+	} else if apacheServerRegexp.MatchString(server) {
+		return &ApacheCrawler{BaseCrawler{doc}}, nil
+	} else {
+		return nil, errgo.Newf("Unknown 'Server' header: %v", server)
+	}
 }

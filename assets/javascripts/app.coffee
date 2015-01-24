@@ -12,7 +12,7 @@ $ ->
     sendSearch value
 
   addButton.on "click", (e) ->
-    console.log "CLICKED"
+    addIndex urlInput.val()
 
   insertIntoTableBody = (data) ->
     row = $("<tr>")
@@ -37,7 +37,7 @@ $ ->
       # Setup the new search query
       @timeoutHandle = setTimeout () ->
         $.ajax
-          method: "GET"
+          type: "GET"
           url: '/api/search'
           data: {search: query}
           success: (data) ->
@@ -49,11 +49,11 @@ $ ->
   )()
 
   addIndex = (url) ->
-    $.post
+    $.ajax
+      type: "POST"
+      contentType: "application/json; charset=utf-8"
+      dataType: 'json'
       url: '/api/indices'
-      data: { url: url }
+      data: JSON.stringify url: url
       success: (data) ->
         # Do something
-
-  addIndex 'http://itinuae.com/torrents/movies/'
-

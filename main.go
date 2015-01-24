@@ -39,6 +39,7 @@ func setupTrain(router *mux.Router) {
 }
 
 func mainWebServer() {
+	configureWorkers()
 	router := mux.NewRouter()
 	router.HandleFunc("/", handleIndex)
 	router.Handle("/api/{any:.*}", api.NewAPI())
