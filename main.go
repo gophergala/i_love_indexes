@@ -1,60 +1,79 @@
 package main
 
 import (
-	"fmt"
-	"strings"
+	"flag"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/GopherGala/i-love-indexes/crawler"
+	"github.com/Scalingo/go-workers"
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/mux"
+)
+
+var (
+	testURL string
 )
 
 func main() {
-	doc, err := goquery.NewDocument("http://itinuae.com/torrents/movies/")
-	if err != nil {
-		fmt.Println("goquery:", err)
+	isWeb := flag.Bool("web", false, "run web server")
+	isCrawler := flag.Bool("crawler", false, "run async crawler")
+	isTester := flag.Bool("tester", false, "add a url in the queue")
+	flag.StringVar(&testURL, "test-url", "", "url to test async crawling")
+	flag.Parse()
+	if *isWeb {
+		mainWebServer()
+	} else if *isCrawler {
+		mainCrawler()
+	} else if *isTester {
+		mainTester()
 	}
+	log.Fatalln("Invalid type of process")
+}
 
-	var fields []string
+func mainWebServer() {
+	stack := negroni.Classic()
+	router := mux.NewRouter()
+	router.Handle("/{any:.*}", stack)
 
-	// Find table header and determine available fields
-	doc.Find("tr th").Each(func(i int, s *goquery.Selection) {
-		text := strings.TrimSpace(s.Text())
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "4000"
+	}
+	log.Println("Listening on", port)
+	log.Fatalln(http.ListenAndServe(":"+port, router))
+}
 
-		if s.Children().Is("img") {
-			fields = append(fields, "img")
-		} else if text != "" {
-			fields = append(fields, text)
-		}
+func mainCrawler() {
+	configureWorkers()
+	workers.Process("index-crawler", crawler.CrawlWorker, 10)
+	workers.Run()
+}
+
+func mainTester() {
+	configureWorkers()
+	workers.Enqueue("index-crawler", "CrawlWorker", testURL)
+}
+
+func configureWorkers() {
+	workers.Configure(map[string]string{
+		"server":   redisHost(),
+		"database": "0",
+		"pool":     "30",
+		"process":  "1",
 	})
+}
 
-	var items []map[string]string
-
-	// Run through each row and extract data
-	doc.Find("tr").Each(func(i int, s *goquery.Selection) {
-		tds := s.Find("td")
-
-		// Row is empty
-		if text := strings.TrimSpace(tds.Text()); text == "" {
-			return
-		}
-
-		// Row has incorrect structure
-		if tds.Size() != len(fields) {
-			return
-		}
-
-		// Row has correct structure
-		data := map[string]string{}
-		tds.Each(func(i int, s *goquery.Selection) {
-			// Ignore the img field
-			if fields[i] == "img" {
-				return
-			}
-
-			data[fields[i]] = s.Text()
-		})
-		items = append(items, data)
-
-		fmt.Println(data)
-		fmt.Println("=============")
-	})
+func redisHost() string {
+	redisURL := "redis://localhost:6379"
+	if os.Getenv("REDIS_URL") != "" {
+		redisURL = os.Getenv("REDIS_URL")
+	}
+	u, err := url.Parse(redisURL)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return u.Host
 }
