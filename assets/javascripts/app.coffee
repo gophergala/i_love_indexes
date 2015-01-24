@@ -25,12 +25,15 @@ $ ->
     addIndexOf urlInput.val()
     e.preventDefault()
 
-  insertIntoTableBody = (data) ->
+  insertIntoTableBody = (indexItem) ->
     row = $("<tr>")
     fields = ['name', 'last_modified_at', 'size']
-    fields.forEach (field) ->
+    fields.forEach (field, index) ->
       td = $("<td>")
-      td.text data[field]
+      itemText = indexItem[field]
+      if index == 1
+        itemText = moment(itemText).fromNow()
+      td.text itemText
       row.append td
 
     tableBody.append row
