@@ -18,24 +18,16 @@ import (
 	"github.com/shaoshing/train"
 )
 
-var (
-	testURL string
-)
-
 func main() {
 	isWeb := flag.Bool("web", false, "run web server")
 	isCrawler := flag.Bool("crawler", false, "run async crawler")
-	isTester := flag.Bool("tester", false, "add a url in the queue")
-	flag.StringVar(&testURL, "test-url", "", "url to test async crawling")
 	flag.Parse()
 	if *isWeb {
 		mainWebServer()
 	} else if *isCrawler {
 		mainCrawler()
-	} else if *isTester {
-		mainTester()
 	} else {
-		log.Fatalln("Invalid type of process, precis -web, -crawler or -tester")
+		log.Fatalln("Invalid type of process, precis -web, -crawler")
 	}
 }
 
@@ -67,11 +59,6 @@ func mainCrawler() {
 	configureWorkers()
 	workers.Process("index-crawler", crawler.CrawlWorker, 10)
 	workers.Run()
-}
-
-func mainTester() {
-	configureWorkers()
-	workers.Enqueue("index-crawler", "CrawlWorker", testURL)
 }
 
 func configureWorkers() {

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/GopherGala/i-love-indexes/elasticsearch"
+	"github.com/Scalingo/go-workers"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
+	"gopkg.in/errgo.v1"
 )
 
 func NewAPI() http.Handler {
@@ -39,14 +42,28 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 	var params *AddIndexOfParams
 	err := json.NewDecoder(req.Body).Decode(&params)
 	if err != nil {
-		res.WriteHeader(500)
-		fmt.Fprint(res, err)
+		res.WriteHeader(400)
+		fmt.Fprintf(res, "invalid JSON: %v", err)
 		return
 	}
 
 	if params.URL == "" {
 		res.WriteHeader(422)
 		err := NewUnprocessableEntityError()
-		err.Add("url", "is empty")
+		err.Add("url", "can't be blank")
+		json.NewEncoder(res).Encode(&err)
+		return
 	}
+
+	index := &elasticsearch.IndexOf{URL: params.URL}
+	err = elasticsearch.Index(index)
+	if err != nil {
+		res.WriteHeader(500)
+		fmt.Fprintf(res, errgo.Details(err))
+		return
+	}
+
+	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.URL, index.Id})
+	res.WriteHeader(201)
+	json.NewEncoder(res).Encode(&index)
 }
