@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"text/template"
 
 	"github.com/GopherGala/i_love_indexes/api"
 	"github.com/GopherGala/i_love_indexes/crawler"
@@ -45,6 +48,7 @@ func setupTrain(router *mux.Router) {
 
 func mainWebServer() {
 	router := mux.NewRouter()
+	router.HandleFunc("/", handleIndex)
 	router.Handle("/api/{any:.*}", api.NewAPI())
 	setupTrain(router)
 
@@ -89,4 +93,32 @@ func redisHost() string {
 		log.Fatalln(err)
 	}
 	return u.Host
+}
+
+func handleIndex(res http.ResponseWriter, req *http.Request) {
+	tpl := template.New("index.html")
+
+	// Adding train helpers
+	tpl.Funcs(template.FuncMap{
+		"javascript_tag":            train.JavascriptTag,
+		"stylesheet_tag":            train.StylesheetTag,
+		"stylesheet_tag_with_param": train.StylesheetTagWithParam,
+	})
+	_, err := tpl.ParseFiles("views/index.html")
+	if err != nil {
+		res.WriteHeader(500)
+		fmt.Fprintln(res, err)
+		return
+	}
+
+	buffer := &bytes.Buffer{}
+	err = tpl.Execute(buffer, nil)
+	if err != nil {
+		res.WriteHeader(500)
+		fmt.Fprintln(res, err)
+		return
+	}
+
+	res.WriteHeader(200)
+	buffer.WriteTo(res)
 }
