@@ -4,7 +4,14 @@ $ ->
   urlInput = $('input[type=url]')
   addButton = $('button')
 
-  console.log addButton
+  # Hide table
+  table = $('table')
+  table.toggle()
+
+  # Vertically center header
+  header = $('#header')
+  header.css('margin-top', $(window).height() / 2 - header.height() / 2)
+  $('body').css('background-color', '#eee')
 
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
@@ -42,6 +49,11 @@ $ ->
           data: {search: query}
           success: (data) ->
             data.forEach insertIntoTableBody if data instanceof Array
+            header.animate
+              'margin-top': 0
+              'slow'
+            $('body').animate 'background-color': 'white'
+            table.slideDown()
 
         @timeoutHandle = 0
         console.log 'SENT !'

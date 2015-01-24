@@ -1,41 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>I Love Indexes</title>
-	<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
-	{{stylesheet_tag "app"}}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>I Love Indexes</title>
+  <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,100' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/base-min.css">
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+  {{stylesheet_tag "app"}}
 
 </head>
 <body>
+  <div class="pure-g">
 
-	<input type="search" id="search" name="search" value="" placeholder="search" autofocus>
+    <div id="header" class="pure-u-1">
+      <div class="pure-u-1-3 pure-u-md-1-24">
+      </div>
+      <div id="inputs" class="pure-u-1-3 pure-u-md-22-24">
+        <h1>I Love Indexes</h1>
+        <p>To show your 💕 you can:</p>
+        <form class="pure-form" accept-charset="utf-8">
+          <input class="pure-input-1" type="search" id="search" name="search" value="" placeholder="Search Index Of" autofocus>
+        </form>
+        <p>Or</p>
+        <form class="pure-form" accept-charset="utf-8">
+          <input class="pure-input-1" type="url" name="url" value="" placeholder="Add an Index Of">
+          <button type="submit" class="pure-button" hidden>Add</button>
+        </form>
+      </div>
+      <div class="pure-u-1-3 pure-u-md-1-24">
+      </div>
+    </div>
 
-	<input type="url" name="url" value="" placeholder="index of url">
-	<button type="button">Add</button>
+    <div id="results">
+      <table class="pure-table pure-table-horizontal pure-u">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Last modified</th>
+            <th>Size</th>
+            <!-- <th>Description</th> -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>dwddw</td>
+            <td>dwdw</td>
+            <td>dwdwd</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-	<table>
-		<caption>table title and/or explanatory text</caption>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Last modified</th>
-				<th>Size</th>
-				<th>Description</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td>data</td>
-				<td>data</td>
-				<td>data</td>
-				<td>data</td>
-			</tr>
-		</tbody>
-	</table>
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-	{{javascript_tag "app"}}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  {{javascript_tag "app"}}
 </body>
 </html>
