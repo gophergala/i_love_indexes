@@ -32,7 +32,7 @@ $ ->
     fields.forEach (field) ->
       td = $("<td>")
       if field == "last_modified_at"
-        td.html moment(item).fromNow()
+        td.html moment(indexItem[field]).fromNow()
       else if field == "url"
         item = $("<a>").attr("href", indexItem[field]).text(indexItem[field])
         td.append item
