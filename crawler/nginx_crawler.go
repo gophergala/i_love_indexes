@@ -23,6 +23,9 @@ func (crawler *NginxCrawler) Crawl() error {
 		// Run through each row and extract data
 		pre := doc.Find("pre").First()
 		as := pre.Find("a").Nodes
+		if len(as) == 0 {
+			return
+		}
 		entries := strings.Split(pre.Text(), "\n")
 		var err error
 		for i, entry := range entries {
@@ -35,7 +38,7 @@ func (crawler *NginxCrawler) Crawl() error {
 			if strings.Contains(entry, "../") {
 				continue
 			}
-			fields := strings.Split(spaceRegexp.ReplaceAllString(entry[51:], "\t"), "\t")
+			fields := strings.Split(strings.TrimSpace(spaceRegexp.ReplaceAllString(entry[51:], "\t")), "\t")
 			item.LastModifiedAt, err = ApacheParseDate(fields[0])
 			if err != nil {
 				errs <- err

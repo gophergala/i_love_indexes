@@ -3,8 +3,16 @@ package elasticsearch
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GopherGala/i_love_indexes/conn_throttler"
+	"gopkg.in/errgo.v1"
 )
 
 type IndexItem struct {
@@ -26,6 +34,11 @@ func (i *IndexItem) Type() string {
 	return "index_item"
 }
 
+func (i *IndexItem) Host() string {
+	u, _ := url.Parse(i.URL)
+	return u.Host
+}
+
 func (i *IndexItem) GetId() string {
 	return i.Id
 }
@@ -39,7 +52,45 @@ func (i *IndexItem) SetEscapedName() {
 	i.EscapedName = r.Replace(i.Name)
 }
 
+func (i *IndexItem) SetSizeFromHeader() error {
+	if i.MIMEType == "directory" {
+		return nil
+	}
+	sem := conn_throttler.Acquire(i.Host())
+	defer sem.Release()
+	req, err := http.NewRequest("HEAD", i.URL, nil)
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	res.Body.Close()
+	lengthStr := res.Header.Get("Content-Length")
+	if lengthStr == "" {
+		log.Println(i, "has no Content-Length header")
+		return nil
+	}
+	length, err := strconv.ParseInt(lengthStr, 10, 64)
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	i.Size = length
+	return nil
+}
+
 func SearchIndexItemsPerName(name string) []*IndexItem {
+	isRegexp := false
+	if strings.ContainsAny(name, "*?+[]{}.") {
+		_, err := regexp.Compile(name)
+		if err == nil {
+			fmt.Println("REGEXP MATCHING")
+			isRegexp = true
+		} else {
+			fmt.Println(name, "err is", err)
+		}
+	}
 	// Fuzzy search query
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
@@ -82,17 +133,29 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// 	},
 	// }
 
-	// Full-text query
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"escaped_name": map[string]interface{}{
-					"query":     name,
-					"fuzziness": 2,
-					"type":      "phrase",
+	var query map[string]interface{}
+
+	if isRegexp {
+		query = map[string]interface{}{
+			"query": map[string]interface{}{
+				"regexp": map[string]interface{}{
+					"name": name,
 				},
 			},
-		},
+		}
+	} else {
+		// Full-text query
+		query = map[string]interface{}{
+			"query": map[string]interface{}{
+				"match": map[string]interface{}{
+					"escaped_name": map[string]interface{}{
+						"query":     name,
+						"fuzziness": 2,
+						"type":      "phrase",
+					},
+				},
+			},
+		}
 	}
 
 	// query := map[string]interface{}{
@@ -127,7 +190,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	items := []*IndexItem{}
 	var item *IndexItem
 
-	res, err := defaultConn.Search(defaultIndex, "index_item", nil, query)
+	res, err := defaultConn.Search(defaultIndex, "index_item", map[string]interface{}{"size": 30}, query)
 	if err != nil {
 		fmt.Println("fuzzy search err:", err)
 	}

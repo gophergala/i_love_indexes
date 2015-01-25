@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/GopherGala/i_love_indexes/conn_throttler"
 	"github.com/GopherGala/i_love_indexes/elasticsearch"
 	"github.com/PuerkitoBio/goquery"
 	"gopkg.in/errgo.v1"
@@ -20,6 +21,7 @@ type Crawler interface {
 }
 
 func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
+	sem := conn_throttler.Acquire(indexOf.Host)
 	res, err := http.Get(indexOf.URL() + path)
 	if err != nil {
 		return nil, errgo.Mask(err)
@@ -30,6 +32,8 @@ func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
 		return nil, errgo.Mask(err)
 	}
 
+	res.Body.Close()
+	sem.Release()
 	server := res.Header.Get("Server")
 	baseCrawler := BaseCrawler{
 		relativePath: path,
