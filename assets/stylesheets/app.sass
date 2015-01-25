@@ -14,8 +14,24 @@ body
         font-size: 2em
 
 #results, #indices
+  table tr
+    transition: 1s ease-in
+    &.new-entry
+      background: #e8f5e9
+      
   display: none
   margin: 0 auto
+ 
+#results
+  table
+    td:first-child
+      width: 50%
+  button
+    margin-top: 10px
+
+#indices table
+  td:first-child
+    width: 50%
 
 #about
   h1

@@ -80,7 +80,7 @@ func (i *IndexItem) SetSizeFromHeader() error {
 	return nil
 }
 
-func SearchIndexItemsPerName(name string) []*IndexItem {
+func SearchIndexItemsPerName(from string, name string) []*IndexItem {
 	isRegexp := false
 	if strings.ContainsAny(name, "*?+[]{}.") {
 		_, err := regexp.Compile(name)
@@ -190,7 +190,13 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	items := []*IndexItem{}
 	var item *IndexItem
 
-	res, err := defaultConn.Search(defaultIndex, "index_item", map[string]interface{}{"size": 30}, query)
+	params := map[string]interface{}{
+		"size": 10,
+	}
+	if from != "" {
+		params["from"] = from
+	}
+	res, err := defaultConn.Search(defaultIndex, "index_item", params, query)
 	if err != nil {
 		fmt.Println("fuzzy search err:", err)
 	}

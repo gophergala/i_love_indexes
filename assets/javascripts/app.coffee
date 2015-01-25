@@ -7,6 +7,7 @@ $ ->
   addURLForm = $('#add-url-form')
   addURLButton = $('#add-url')
   listURLsButton = $('#list-url')
+  loadMoreButton = $('#load-more')
 
   # Hide table
   indicesTable = $('#indices')
@@ -19,7 +20,11 @@ $ ->
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
     value = e.target.value
-    sendSearch value if value
+    itemIndex.search value if value
+
+  loadMoreButton.on "click", (e) ->
+    itemIndex.loadMore()
+    e.preventDefault()
 
   searchForm.on "submit", (e) ->
     e.preventDefault()
@@ -28,8 +33,14 @@ $ ->
     addIndexOf urlInput.val() #if urlInput.val()
     e.preventDefault()
 
+  disableClassIn = (elem, clazz, timeout) ->
+    setTimeout () ->
+      elem.removeClass(clazz)
+    , timeout
+
   insertIntoTableBody = (tbody, indexItem, fields) ->
-    row = $("<tr>")
+    row = $("<tr>").addClass("new-entry")
+    disableClassIn(row, "new-entry", 3000)
     fields.forEach (field) ->
       td = $("<td>")
       if field == "last_modified_at"
@@ -40,6 +51,8 @@ $ ->
       else if field == "name"
         item = $("<a>").attr("href", indexItem["url"]).text(indexItem[field])
         td.append item
+      else if field == "size"
+        if indexItem[field] == -1 then td.html "- Directory -" else td.html indexItem[field]
       else
         td.html indexItem[field]
       row.append td
@@ -70,7 +83,6 @@ $ ->
       indicesTable.fadeOut cb
 
     update: ->
-      console.log("toto")
       $.ajax
         type: "GET"
         url: '/api/indices'
@@ -88,35 +100,49 @@ $ ->
   )()
 
   # Send search query with a delay
-  sendSearch = (() ->
-    @timeoutHandle = 0
+  itemIndex = (() ->
+    from: 0
+    timeoutHandle: 0
+    query: ""
 
-    (query) =>
+    loadMore: ->
+      @from += 10
+      @_loadItems @query, (items) =>
+        @_addItemsToTable items, () ->
+          $("#about-link").ScrollTo
+            duration: 2000
+
+    search: (query) ->
+      if query != @query then @query = query
       # Cancel waiting search query
-      if timeoutHandle != 0
+      if @timeoutHandle != 0
         clearTimeout @timeoutHandle
-        timeoutHandle = 0
+        @timeoutHandle = 0
 
-      # Setup the new search query
-      @timeoutHandle = setTimeout () ->
-        $.ajax
-          type: "GET"
-          url: '/api/search'
-          dataType: 'json'
-          data: {search: query}
-          success: (data) ->
-            resultsTableBody.empty()
-            data.forEach (elem) ->
-              insertIntoTableBody resultsTableBody, elem, ['name', 'last_modified_at', 'size']
-            header.animate
-              'margin-top': 0
-              'slow'
-            realTimeIndexesOf.disable ->
-              resultsTable.fadeIn()
-
-
+      @timeoutHandle = setTimeout () =>
+        @_loadItems query, (items) =>
+          resultsTableBody.empty()
+          @_addItemsToTable items
         @timeoutHandle = 0
       , 300
+
+    _loadItems: (query, cb) ->
+      $.ajax
+        type: "GET"
+        url: '/api/search'
+        dataType: 'json'
+        data: {q: @query, from: @from}
+        success: cb
+
+    _addItemsToTable: (items, cb) ->
+      items.forEach (elem) ->
+        insertIntoTableBody resultsTableBody, elem, ['name', 'last_modified_at', 'size']
+      header.animate
+        'margin-top': 0
+        'slow'
+      realTimeIndexesOf.disable ->
+        resultsTable.fadeIn()
+      cb() if cb
   )()
 
   addIndexOf = (url) ->

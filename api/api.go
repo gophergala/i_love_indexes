@@ -114,7 +114,8 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 }
 
 func SearchIndexItems(res http.ResponseWriter, req *http.Request) {
-	query := req.URL.Query().Get("search")
+	from := req.URL.Query().Get("from")
+	query := req.URL.Query().Get("q")
 
 	if query == "" {
 		res.WriteHeader(400)
@@ -124,6 +125,6 @@ func SearchIndexItems(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.WriteHeader(200)
-	indexItems := elasticsearch.SearchIndexItemsPerName(query)
+	indexItems := elasticsearch.SearchIndexItemsPerName(from, query)
 	json.NewEncoder(res).Encode(&indexItems)
 }
