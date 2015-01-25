@@ -1,2 +1,2 @@
-web: i-love-indexes -web
-crawler: i-love-indexes -crawler
+web: i_love_indexes -web
+crawler: i_love_indexes -crawler
