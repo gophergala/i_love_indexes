@@ -34,6 +34,9 @@ func (crawler *LighttpdCrawler) Crawl() error {
 				switch class {
 				case "n":
 					item.Path, _ = s.Find("a").First().Attr("href")
+					if item.Path == "../" {
+						return
+					}
 				case "m":
 					item.LastModifiedAt, err = LighttpdParseDate(text)
 					if err != nil {

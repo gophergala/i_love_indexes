@@ -30,6 +30,9 @@ func (crawler *BaseCrawler) End() {
 func (crawler *BaseCrawler) indexResults() {
 	for item := range crawler.itemsToIndex {
 		go func(item *elasticsearch.IndexItem) {
+			if item.Path == "../" {
+				return
+			}
 			item.Path = crawler.relativePath + "/" + strings.Trim(item.Path, "/")
 			if item.Size == -1 {
 				item.MIMEType = "directory"
