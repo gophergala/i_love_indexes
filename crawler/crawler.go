@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/GopherGala/i_love_indexes/conn_throttler"
 	"github.com/GopherGala/i_love_indexes/elasticsearch"
@@ -56,12 +57,13 @@ func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
 	log.Println("Start crawler of:", indexOf.URL()+path)
 	go baseCrawler.Start()
 
-	if nginxServerRegexp.MatchString(server) {
-		return &NginxCrawler{baseCrawler}, nil
+	// check text if apache is reverse-proxied
+	if apacheServerRegexp.MatchString(server) || strings.Contains(doc.Text(), "Apache/2.") {
+		return &ApacheCrawler{baseCrawler}, nil
 	} else if lighthttpdServerRegexp.MatchString(server) {
 		return &LighttpdCrawler{baseCrawler}, nil
-	} else if apacheServerRegexp.MatchString(server) {
-		return &ApacheCrawler{baseCrawler}, nil
+	} else if nginxServerRegexp.MatchString(server) {
+		return &NginxCrawler{baseCrawler}, nil
 	} else {
 		return nil, errgo.Newf("Unknown 'Server' header: %v", server)
 	}
