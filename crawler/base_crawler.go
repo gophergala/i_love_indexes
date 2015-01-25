@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"log"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,7 @@ func (crawler *BaseCrawler) indexResults() {
 			item.URL = crawler.IndexOf.URL() + "/" + item.Path
 			item.IndexOfId = crawler.IndexOf.Id
 			item.SetSizeFromHeader()
+			log.Println("Index item", item.Name)
 			elasticsearch.Index(item)
 		}(item)
 	}

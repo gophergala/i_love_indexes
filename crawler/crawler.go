@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"log"
 	"net/http"
 	"regexp"
 
@@ -22,18 +23,28 @@ type Crawler interface {
 
 func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
 	sem := conn_throttler.Acquire(indexOf.Host)
+	log.Println("Get Index Of:", indexOf.URL()+path)
 	res, err := http.Get(indexOf.URL() + path)
 	if err != nil {
+		sem.Release()
 		return nil, errgo.Mask(err)
+	}
+	if res.StatusCode != 200 {
+		res.Body.Close()
+		sem.Release()
+		return nil, errgo.Newf("invalid status code: %v", res.Status)
 	}
 
 	doc, err := goquery.NewDocumentFromResponse(res)
 	if err != nil {
+		res.Body.Close()
+		sem.Release()
 		return nil, errgo.Mask(err)
 	}
 
 	res.Body.Close()
 	sem.Release()
+
 	server := res.Header.Get("Server")
 	baseCrawler := BaseCrawler{
 		relativePath: path,
@@ -41,6 +52,8 @@ func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
 		IndexOf:      indexOf,
 		Doc:          doc,
 	}
+
+	log.Println("Start crawler of:", indexOf.URL()+path)
 	go baseCrawler.Start()
 
 	if nginxServerRegexp.MatchString(server) {

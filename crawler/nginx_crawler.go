@@ -18,6 +18,8 @@ var (
 func (crawler *NginxCrawler) Crawl() error {
 	errs := make(chan error)
 	go func() {
+		defer close(errs)
+		defer crawler.End()
 		doc := crawler.Doc
 
 		// Run through each row and extract data
@@ -46,9 +48,6 @@ func (crawler *NginxCrawler) Crawl() error {
 			item.Size = mustInt64(fields[1])
 			crawler.itemsToIndex <- item
 		}
-
-		crawler.End()
-		close(errs)
 	}()
 	return <-errs
 }
