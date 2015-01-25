@@ -11,6 +11,8 @@ import (
 
 var (
 	AlreadyIndexedErr = errors.New("index of is already indexed")
+	searchHostQuery   = `{"query": {"filtered": {"filter": {"term": {"host": "%s"}}}}}`
+	countItemsQuery   = `{"query": {"match": {"index_of_id": "%s"}}}`
 )
 
 type IndexOf struct {
@@ -18,6 +20,7 @@ type IndexOf struct {
 	Host      string    `json:"host"`
 	Scheme    string    `json:"scheme"`
 	Path      string    `json:"path"`
+	Count     int       `json:"count"`
 	CrawledAt time.Time `json:"crawled_at"`
 }
 
@@ -52,15 +55,53 @@ func FindIndexOf(id string) (*IndexOf, error) {
 }
 
 func (i *IndexOf) Index() error {
-	res, err := elastigo.Search(defaultIndex).Type(i.Type()).Query(elastigo.Query().Term("host", i.Host)).Result(defaultConn)
+	var searchParams map[string]interface{}
+	query := fmt.Sprintf(searchHostQuery, i.Host)
+	err := json.Unmarshal([]byte(query), &searchParams)
+	if err != nil {
+		return errgo.Mask(err)
+	}
+	res, err := defaultConn.Search(defaultIndex, i.Type(), nil, searchParams)
 	if err != nil {
 		if err == elastigo.RecordNotFound {
 			return Index(i)
 		}
 		return errgo.Mask(err)
 	}
-	if res.Hits.Len() == 1 {
+	fmt.Println(res.Hits.Hits)
+	if res.Hits.Len() > 0 {
 		return AlreadyIndexedErr
 	}
 	return Index(i)
+}
+
+func ListIndexOf() ([]Document, error) {
+	docs, err := ListDocuments((*IndexOf)(nil))
+	if err != nil {
+		return nil, errgo.Mask(err)
+	}
+	wg := &sync.WaitGroup{}
+	for _, doc := range docs {
+		wg.Add(1)
+		go func(doc *IndexOf) {
+			defer wg.Done()
+			c, err := doc.CountItems()
+			if err != nil {
+				log.Println(err)
+			}
+			doc.Count = c
+		}(doc.(*IndexOf))
+	}
+	wg.Wait()
+	return docs, nil
+}
+
+func (i *IndexOf) CountItems() (int, error) {
+	var countParams map[string]interface{}
+	err := json.Unmarshal([]byte(fmt.Sprintf(countItemsQuery, i.Id)), &countParams)
+	if err != nil {
+		return -1, errgo.Mask(err)
+	}
+	res, err := defaultConn.Count(defaultIndex, "index_item", nil, countParams)
+	return res.Count, nil
 }

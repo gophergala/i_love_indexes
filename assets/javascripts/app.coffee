@@ -53,7 +53,7 @@ $ ->
         indicesTableBody.empty()
         data.forEach (elem) ->
           url = elem.scheme + "://" + elem.host + elem.path
-          insertIntoTableBody indicesTableBody, {url: url}, ["url"]
+          insertIntoTableBody indicesTableBody, {url: url, count: elem.count}, ["url", "count"]
         header.animate
           'margin-top': 0
           'slow'

@@ -51,7 +51,7 @@ type AddIndexOfParams struct {
 }
 
 func ListIndexOf(res http.ResponseWriter, req *http.Request) {
-	indices, err := elasticsearch.ListDocuments((*elasticsearch.IndexOf)(nil))
+	indices, err := elasticsearch.ListIndexOf()
 	if err != nil {
 		res.WriteHeader(500)
 		log.Println(errgo.Details(err))
