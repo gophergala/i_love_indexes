@@ -1,0 +1,61 @@
+body
+  background-color: #eee
+
+#header
+  h1, p
+    font-family: 'Roboto Slab', serif
+  background: #eee
+  padding: 1em 0
+  #inputs
+    border-bottom: 1px solid #eee
+    text-align: center
+    button
+      i
+        font-size: 2em
+
+#results, #indices
+  table tr
+    transition: 1s ease-in
+    &.new-entry
+      background: #e8f5e9
+      
+  display: none
+  margin: 0 auto
+ 
+#results
+  table
+    td:first-child
+      width: 50%
+  button
+    margin-top: 10px
+
+#indices table
+  td:first-child
+    width: 50%
+
+#about
+  p
+    text-align: justify
+  h1
+    text-align: center
+  div
+    display: block
+    margin: 0 auto
+
+#footer
+  margin: 0 auto
+  text-align: center
+
+#btn-row
+  display: inline-flex
+  justify-content: flex-end
+  align-items: baseline
+  button
+    margin-left: 10px
+  span
+    flex: 1
+    text-align: left
+
+// Override font stack set by pure
+html, button, input, select, textarea, .pure-g [class *= "pure-u"]
+  font-family: 'Roboto Slab', serif
