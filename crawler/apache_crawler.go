@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/GopherGala/i_love_indexes/elasticsearch"
@@ -10,6 +11,10 @@ import (
 type ApacheCrawler struct {
 	BaseCrawler
 }
+
+var (
+	parentDirRegexp = regexp.MustCompile(`.*Parent Directory.*`)
+)
 
 func (crawler *ApacheCrawler) Crawl() error {
 	errs := make(chan error)
@@ -23,7 +28,7 @@ func (crawler *ApacheCrawler) Crawl() error {
 			tds := s.Find("td")
 
 			// Row is empty
-			if text := strings.TrimSpace(tds.Text()); text == "" || text == "Parent Directory   -" {
+			if text := strings.TrimSpace(tds.Text()); text == "" || parentDirRegexp.MatchString(text) {
 				return
 			}
 
@@ -47,9 +52,8 @@ func (crawler *ApacheCrawler) Crawl() error {
 
 				if headers[i] == "Name" {
 					item.Path, _ = s.Find("a").First().Attr("href")
-				} else if headers[0] == "Size" {
+				} else if headers[i] == "Size" {
 					item.Size = ParseSize(text)
-
 				} else if headers[i] == "LastModifiedAt" {
 					date, err := ApacheParseDate(text)
 					if err != nil {

@@ -3,7 +3,10 @@ package crawler
 import "strconv"
 
 func ParseSize(size string) int64 {
-	sfloat, _ := strconv.ParseFloat(size[:len(size)-1], 64)
+	sfloat, err := strconv.ParseFloat(size[:len(size)-1], 64)
+	if err != nil {
+		return -1
+	}
 	s := int64(sfloat)
 	suffix := size[len(size)-1]
 

@@ -47,6 +47,7 @@ func FindIndexOf(id string) (*IndexOf, error) {
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
+	indexOf.Id = id
 	return indexOf, nil
 }
 

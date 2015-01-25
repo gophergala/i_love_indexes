@@ -89,6 +89,9 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if u.Path == "/" {
+		u.Path = ""
+	}
 	index := &elasticsearch.IndexOf{Host: u.Host, Scheme: u.Scheme, Path: u.Path}
 	err = index.Index()
 	if err != nil {
@@ -105,7 +108,7 @@ func AddIndexOf(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.Id})
+	workers.Enqueue("index-crawler", "CrawlWorker", []string{index.Id, ""})
 	res.WriteHeader(201)
 	json.NewEncoder(res).Encode(&index)
 }

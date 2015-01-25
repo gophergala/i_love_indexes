@@ -15,12 +15,15 @@ func CrawlWorker(msg *workers.Msg) {
 		return
 	}
 	id := params[0].(string)
+	path := params[1].(string)
+
 	indexOf, err := elasticsearch.FindIndexOf(id)
 	if err != nil {
 		log.Println("index of not found", id)
 		return
 	}
-	crawler, err := NewCrawler(indexOf)
+
+	crawler, err := NewCrawler(indexOf, path)
 	if err != nil {
 		log.Println("failed to get crawler", errgo.Details(err))
 		return

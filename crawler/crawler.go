@@ -19,8 +19,8 @@ type Crawler interface {
 	Crawl() error
 }
 
-func NewCrawler(indexOf *elasticsearch.IndexOf) (Crawler, error) {
-	res, err := http.Get(indexOf.URL())
+func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
+	res, err := http.Get(indexOf.URL() + path)
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
@@ -32,6 +32,7 @@ func NewCrawler(indexOf *elasticsearch.IndexOf) (Crawler, error) {
 
 	server := res.Header.Get("Server")
 	baseCrawler := BaseCrawler{
+		relativePath: path,
 		itemsToIndex: make(chan *elasticsearch.IndexItem, 10),
 		IndexOf:      indexOf,
 		Doc:          doc,
