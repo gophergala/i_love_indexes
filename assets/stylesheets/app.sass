@@ -9,27 +9,25 @@ body
   #inputs
     border-bottom: 1px solid #eee
     text-align: center
+    button
+      i
+        font-size: 2em
 
 #results, #indices
   display: none
   margin: 0 auto
 
 #add-url
-  .form-group
-    width: 100%
-    display: flex
-    button
-      margin-left: 10px
-      i
-        font-size: 42px
-    input
-      height: 50%
-      flex: auto
-
   span.error
     color: red
     text-align: left
     height: 0
+
+#btn-row
+  display: inline-flex
+  justify-content: flex-end
+  button:first-child
+    margin-right: 10px
 
 // Override font stack set by pure
 html, button, input, select, textarea, .pure-g [class *= "pure-u"]

@@ -44,7 +44,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
 	// 		"fuzzy_like_this_field": map[string]interface{}{
-	// 			"name": map[string]string{
+	// 			"escaped_name": map[string]string{
 	// 				"like_text": name,
 	// 			},
 	// 		},
@@ -54,7 +54,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
 	// 		"fuzzy": map[string]interface{}{
-	// 			"name": name,
+	// 			"escaped_name": name,
 	// 		},
 	// 	},
 	// }
@@ -62,7 +62,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
 	// 		"fuzzy": map[string]interface{}{
-	// 			"name": map[string]interface{}{
+	// 			"escaped_name": map[string]interface{}{
 	// 				"value":     name,
 	// 				"fuzziness": 2,
 	// 			},
@@ -71,29 +71,29 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// }
 
 	// Match with fuzziness
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"name": map[string]interface{}{
-					"query":     name,
-					"fuzziness": "AUTO",
-				},
-			},
-		},
-	}
-
-	// Full-text query
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
 	// 		"match": map[string]interface{}{
-	// 			"name": map[string]interface{}{
+	// 			"escaped_name": map[string]interface{}{
 	// 				"query":     name,
-	// 				"fuzziness": 2,
-	// 				"type":      "phrase",
+	// 				"fuzziness": "AUTO",
 	// 			},
 	// 		},
 	// 	},
 	// }
+
+	// Full-text query
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"match": map[string]interface{}{
+				"escaped_name": map[string]interface{}{
+					"query":     name,
+					"fuzziness": 2,
+					"type":      "phrase",
+				},
+			},
+		},
+	}
 
 	// query := map[string]interface{}{
 	// 	"query": map[string]interface{}{
@@ -101,7 +101,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// 			"should": []interface{}{
 	// 				map[string]interface{}{
 	// 					"match": map[string]interface{}{
-	// 						"name": map[string]interface{}{
+	// 						"escaped_name": map[string]interface{}{
 	// 							"query":     name,
 	// 							"fuzziness": 0.5,
 	// 						},
@@ -109,7 +109,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 	// 				},
 	// 				map[string]interface{}{
 	// 					"match": map[string]interface{}{
-	// 						"name": map[string]interface{}{
+	// 						"escaped_name": map[string]interface{}{
 	// 							"query":     name,
 	// 							"fuzziness": 2,
 	// 							"type":      "phrase",

@@ -4,8 +4,8 @@ $ ->
   resultsTableBody = $('#results table tbody')
   indicesTableBody = $('#indices table tbody')
   urlInput = $('input[type=url]')
-  addURL = $('#add-url')
-  listURLsButton = $('#add-url button')
+  addURLForm = $('#add-url-form')
+  listURLsButton = $('#list-url')
 
   # Hide table
   indicesTable = $('#indices')
@@ -13,7 +13,7 @@ $ ->
 
   # Vertically center header
   header = $('#header')
-  header.css('margin-top', $(window).height() / 2 - header.height())
+  header.css('margin-top', $(window).height() / 2 - header.height() / 1.5)
 
   # Listen to input event and send search query
   searchInput.on "input", (e) ->
@@ -23,7 +23,7 @@ $ ->
   searchForm.on "submit", (e) ->
     e.preventDefault()
 
-  addURL.on "submit", (e) ->
+  addURLForm.on "submit", (e) ->
     addIndexOf urlInput.val()
     e.preventDefault()
 
@@ -84,7 +84,6 @@ $ ->
             header.animate
               'margin-top': 0
               'slow'
-            resultsTable.css("display", "block")
             indicesTable.fadeOut ->
               resultsTable.fadeIn()
 

@@ -23,20 +23,26 @@
         <form class="pure-form" accept-charset="utf-8" id="search-form">
           <input class="pure-input-1" type="search" id="search" name="search" value="" placeholder="Search Index Of" autofocus>
         </form>
+
         <p>Or</p>
-        <form class="pure-form pure-form-algned" accept-charset="utf-8" id="add-url">
+
+        <form class="pure-form" accept-charset="utf-8" id="add-url-form">
           <fieldset>
             <div class="pure-control-group">
-              <div class="form-group">
-                <input type="url" name="url" value="" placeholder="Add an Index Of" autocomplete="off">
-                <button type="button" class="btn waves-effect">
-                  <i class="mdi-action-list"></i>
-                </button>
-              </div>
+              <input class="pure-input-1" type="url" name="url" value="" placeholder="Add an Index Of" autocomplete="off">
               <span class="hidden error"></span>
             </div>
-          <fieldset>
+          </fieldset>
         </form>
+
+        <div id="btn-row" class="pure-u-1">
+          <button id="add-url" type="submit" class="btn waves-effect" form="add-url-form">
+            <i class="mdi-content-add"></i>
+          </button>
+          <button id="list-url" type="button" class="btn waves-effect grey">
+            <i class="mdi-action-list"></i>
+          </button>
+        </div>
       </div>
       <div class="pure-u-1-3 pure-u-md-1-24">
       </div>
