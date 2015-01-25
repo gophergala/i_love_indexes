@@ -45,20 +45,46 @@ $ ->
     tbody.append row
 
   listURLsButton.on "click", (e) ->
-    $.ajax
-      type: "GET"
-      url: '/api/indices'
-      dataType: 'json'
-      success: (data) ->
-        indicesTableBody.empty()
-        data.forEach (elem) ->
-          url = elem.scheme + "://" + elem.host + elem.path
-          insertIntoTableBody indicesTableBody, {url: url, count: elem.count}, ["url", "count"]
-        header.animate
-          'margin-top': 0
-          'slow'
-        resultsTable.fadeOut ->
-          indicesTable.fadeIn()
+    realTimeIndexesOf.toggle()
+
+  realTimeIndexesOf = (() ->
+    tickHandle: 0
+
+    enable: () ->
+      @update()
+      @tickHandle = setInterval () =>
+        @update()
+      , 1000
+
+    toggle: () ->
+      if @tickHandle != 0
+        @disable()
+      else
+        @enable()
+
+    disable: (cb) ->
+      if @tickHandle != 0
+        clearInterval @tickHandle
+      @tickHandle = 0
+      indicesTable.fadeOut cb
+
+    update: ->
+      console.log("toto")
+      $.ajax
+        type: "GET"
+        url: '/api/indices'
+        dataType: 'json'
+        success: (data) ->
+          indicesTableBody.empty()
+          data.forEach (elem) ->
+            url = elem.scheme + "://" + elem.host + elem.path
+            insertIntoTableBody indicesTableBody, {url: url, count: elem.count}, ["url", "count"]
+          header.animate
+            'margin-top': 0
+            'slow'
+          resultsTable.fadeOut ->
+            indicesTable.fadeIn()
+  )()
 
   # Send search query with a delay
   sendSearch = (() ->
@@ -84,7 +110,7 @@ $ ->
             header.animate
               'margin-top': 0
               'slow'
-            indicesTable.fadeOut ->
+            realTimeIndexesOf.disable ->
               resultsTable.fadeIn()
 
 
@@ -103,6 +129,7 @@ $ ->
         $("#btn-row .error").addClass("hidden")
         $("#btn-row .error").val("")
         urlInput.val("")
+        realTimeIndexesOf.enable()
       error: (response, error) ->
         errSpan = $("#btn-row .error")
         setTimeout () ->

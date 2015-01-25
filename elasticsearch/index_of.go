@@ -3,6 +3,9 @@ package elasticsearch
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
+	"sync"
 	"time"
 
 	elastigo "github.com/mattbaird/elastigo/lib"
@@ -68,7 +71,6 @@ func (i *IndexOf) Index() error {
 		}
 		return errgo.Mask(err)
 	}
-	fmt.Println(res.Hits.Hits)
 	if res.Hits.Len() > 0 {
 		return AlreadyIndexedErr
 	}
