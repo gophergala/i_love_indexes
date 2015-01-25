@@ -35,9 +35,16 @@ func initDefaultConn() {
 		if err != nil {
 			log.Fatalln("Invlid URL:", u)
 		}
+		user, password := "", ""
+		if elasticsearchURL.User != nil {
+			user = elasticsearchURL.User.Username()
+			password, _ = elasticsearchURL.User.Password()
+		}
 		splittedHost := strings.Split(elasticsearchURL.Host, ":")
 		defaultConn = &elastigo.Conn{
 			Protocol:       elastigo.DefaultProtocol,
+			Username:       user,
+			Password:       password,
 			Domain:         splittedHost[0],
 			ClusterDomains: []string{splittedHost[0]},
 			Port:           splittedHost[1],
