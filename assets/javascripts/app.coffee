@@ -133,11 +133,12 @@ $ ->
       , 300
 
     _loadItems: (query, cb) ->
+      type = $('input[name="search-type"]:checked').val()
       $.ajax
         type: "GET"
         url: '/api/search'
         dataType: 'json'
-        data: {q: @query, from: @from}
+        data: {q: @query, from: @from, t: type}
         success: cb
 
     _addItemsToTable: (items, cb) ->
