@@ -27,7 +27,13 @@ $ ->
     e.preventDefault()
 
   searchForm.on "submit", (e) ->
+    # force search
+    searchInput.trigger("input")
     e.preventDefault()
+
+  # When click on radio button trigger search
+  $('input[name="search-type"]').on "click", (e) ->
+    searchInput.trigger("input")
 
   addURLForm.on "submit", (e) ->
     addIndexOf urlInput.val() #if urlInput.val()
@@ -133,11 +139,12 @@ $ ->
       , 300
 
     _loadItems: (query, cb) ->
+      type = $('input[name="search-type"]:checked').val()
       $.ajax
         type: "GET"
         url: '/api/search'
         dataType: 'json'
-        data: {q: @query, from: @from}
+        data: {q: @query, from: @from, t: type}
         success: cb
 
     _addItemsToTable: (items, cb) ->

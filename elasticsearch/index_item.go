@@ -47,9 +47,9 @@ func (i *IndexItem) SetId(id string) {
 	i.Id = id
 }
 
-func (i *IndexItem) SetEscapedName() {
+func (i *IndexItem) GetEscapedName() string {
 	r := strings.NewReplacer("-", " ", "_", " ", ".", " ")
-	i.EscapedName = r.Replace(i.Name)
+	return r.Replace(i.Name)
 }
 
 func (i *IndexItem) SetSizeFromHeader() error {
@@ -80,7 +80,7 @@ func (i *IndexItem) SetSizeFromHeader() error {
 	return nil
 }
 
-func SearchIndexItemsPerName(from string, name string) []*IndexItem {
+func SearchIndexItemsPerName(from string, typ string, name string) []*IndexItem {
 	isRegexp := false
 	if strings.ContainsAny(name, "*?+[]{}.") {
 		_, err := regexp.Compile(name)
@@ -144,17 +144,52 @@ func SearchIndexItemsPerName(from string, name string) []*IndexItem {
 			},
 		}
 	} else {
-		// Full-text query
-		query = map[string]interface{}{
-			"query": map[string]interface{}{
-				"match": map[string]interface{}{
-					"escaped_name": map[string]interface{}{
-						"query":     name,
-						"fuzziness": "auto",
-						"type":      "phrase",
+		if typ != "any" {
+			var typRegexp string
+			switch typ {
+			case "video":
+				typRegexp = `.*\.(mp4|flv|mkv|avi)`
+			case "audio":
+				typRegexp = `.*\.(mp3|m4a|flac|ogg|wav)`
+			case "ebook":
+				typRegexp = `.*\.(mobi|epub|cbz|djvu)`
+			}
+			query = map[string]interface{}{
+				"query": map[string]interface{}{
+					"bool": map[string]interface{}{
+						"should": []map[string]interface{}{
+							map[string]interface{}{
+								"match": map[string]interface{}{
+									"escaped_name": map[string]interface{}{
+										"query":     name,
+										"fuzziness": "auto",
+										"type":      "phrase",
+									},
+								},
+							},
+							map[string]interface{}{
+								"regexp": map[string]interface{}{
+									"name": typRegexp,
+								},
+							},
+						},
+						"minimum_should_match": 2,
 					},
 				},
-			},
+			}
+		} else {
+			// Full-text query
+			query = map[string]interface{}{
+				"query": map[string]interface{}{
+					"match": map[string]interface{}{
+						"escaped_name": map[string]interface{}{
+							"query":     name,
+							"fuzziness": "auto",
+							"type":      "phrase",
+						},
+					},
+				},
+			}
 		}
 	}
 
@@ -196,12 +231,14 @@ func SearchIndexItemsPerName(from string, name string) []*IndexItem {
 	if from != "" {
 		params["from"] = from
 	}
+
+	log.Printf("Params: %+v\nQuery: %+v\n", params, query)
 	res, err := defaultConn.Search(defaultIndex, "index_item", params, query)
 	if err != nil {
 		fmt.Println("fuzzy search err:", err)
 	}
 
-	fmt.Printf("%+v\n", res.Hits)
+	log.Println("Got", res.Hits.Len(), "hits")
 
 	for _, h := range res.Hits.Hits {
 		item = &IndexItem{}

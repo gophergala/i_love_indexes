@@ -42,6 +42,10 @@
 			"Rev": "1dd3ab0ff59e13f5b73dcbf70703710aebe50d2f"
 		},
 		{
+			"ImportPath": "github.com/djimenez/iconv-go",
+			"Rev": "5f6a5a4f0011195c0147545149ad54f4adb54757"
+		},
+		{
 			"ImportPath": "github.com/garyburd/redigo/redis",
 			"Rev": "779af66db5668074a96f522d9025cb0a5ef50d89"
 		},
@@ -57,6 +61,10 @@
 			"ImportPath": "github.com/mattbaird/elastigo/lib",
 			"Comment": "v1.0-130-ga6abba0",
 			"Rev": "a6abba0d3399773d20b5217adc13648cf85f1fed"
+		},
+		{
+			"ImportPath": "github.com/mikkyang/id3-go",
+			"Rev": "59e3c3ddc696763f43a020498a64928d1e124672"
 		},
 		{
 			"ImportPath": "github.com/shaoshing/train",
