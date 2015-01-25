@@ -19,6 +19,9 @@ var (
 func (crawler *ApacheCrawler) Crawl() error {
 	errs := make(chan error)
 	go func() {
+		defer close(errs)
+		defer crawler.End()
+
 		doc := crawler.Doc
 
 		headers := crawler.crawlHeaders()
@@ -65,9 +68,6 @@ func (crawler *ApacheCrawler) Crawl() error {
 			})
 			crawler.itemsToIndex <- item
 		})
-
-		crawler.End()
-		close(errs)
 	}()
 
 	return <-errs

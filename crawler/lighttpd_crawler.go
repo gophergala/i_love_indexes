@@ -14,6 +14,8 @@ type LighttpdCrawler struct {
 func (crawler *LighttpdCrawler) Crawl() error {
 	errs := make(chan error)
 	go func() {
+		defer close(errs)
+		defer crawler.End()
 		doc := crawler.Doc
 
 		// Run through each row and extract data
@@ -45,9 +47,6 @@ func (crawler *LighttpdCrawler) Crawl() error {
 			})
 			crawler.itemsToIndex <- item
 		})
-
-		crawler.End()
-		close(errs)
 	}()
 
 	return <-errs
