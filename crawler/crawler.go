@@ -1,6 +1,7 @@
 package crawler
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
@@ -31,6 +32,8 @@ func NewCrawler(indexOf *elasticsearch.IndexOf, path string) (Crawler, error) {
 		return nil, errgo.Mask(err)
 	}
 	if res.StatusCode != 200 {
+		b, err := ioutil.ReadAll(res.Body)
+		log.Println(string(b), err)
 		res.Body.Close()
 		sem.Release()
 		return nil, errgo.Newf("invalid status code: %v", res.Status)

@@ -47,9 +47,9 @@ func (i *IndexItem) SetId(id string) {
 	i.Id = id
 }
 
-func (i *IndexItem) SetEscapedName() {
+func (i *IndexItem) GetEscapedName() string {
 	r := strings.NewReplacer("-", " ", "_", " ", ".", " ")
-	i.EscapedName = r.Replace(i.Name)
+	return r.Replace(i.Name)
 }
 
 func (i *IndexItem) SetSizeFromHeader() error {
@@ -157,18 +157,23 @@ func SearchIndexItemsPerName(from string, typ string, name string) []*IndexItem 
 			query = map[string]interface{}{
 				"query": map[string]interface{}{
 					"bool": map[string]interface{}{
-						"must": map[string]interface{}{
-							"match": map[string]interface{}{
-								"escaped_name": map[string]interface{}{
-									"query":     name,
-									"fuzziness": "auto",
-									"type":      "phrase",
+						"should": []map[string]interface{}{
+							map[string]interface{}{
+								"match": map[string]interface{}{
+									"escaped_name": map[string]interface{}{
+										"query":     name,
+										"fuzziness": "auto",
+										"type":      "phrase",
+									},
 								},
 							},
-							"regexp": map[string]interface{}{
-								"name": typRegexp,
+							map[string]interface{}{
+								"regexp": map[string]interface{}{
+									"name": typRegexp,
+								},
 							},
 						},
+						"minimum_should_match": 2,
 					},
 				},
 			}
@@ -226,12 +231,14 @@ func SearchIndexItemsPerName(from string, typ string, name string) []*IndexItem 
 	if from != "" {
 		params["from"] = from
 	}
+
+	log.Printf("Params: %+v\nQuery: %+v\n", params, query)
 	res, err := defaultConn.Search(defaultIndex, "index_item", params, query)
 	if err != nil {
 		fmt.Println("fuzzy search err:", err)
 	}
 
-	fmt.Printf("%+v\n", res.Hits)
+	log.Println("Got", res.Hits.Len(), "hits")
 
 	for _, h := range res.Hits.Hits {
 		item = &IndexItem{}
