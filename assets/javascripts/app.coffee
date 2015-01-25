@@ -40,7 +40,7 @@ $ ->
 
   insertIntoTableBody = (tbody, indexItem, fields) ->
     row = $("<tr>").addClass("new-entry")
-    disableClassIn(row, "new-entry", 3000)
+    disableClassIn(row, "new-entry", 2000)
     fields.forEach (field) ->
       td = $("<td>")
       if field == "last_modified_at"
@@ -104,10 +104,12 @@ $ ->
     from: 0
     timeoutHandle: 0
     query: ""
+    step: 10
 
     loadMore: ->
-      @from += 10
+      @from += @step
       @_loadItems @query, (items) =>
+        loadMoreButton.hide() if items.length < @step
         @_addItemsToTable items, () ->
           $("#about-link").ScrollTo
             duration: 2000
@@ -124,6 +126,7 @@ $ ->
 
       @timeoutHandle = setTimeout () =>
         @_loadItems query, (items) =>
+          if items.length >= @step then loadMoreButton.show() else loadMoreButton.hide()
           resultsTableBody.empty()
           @_addItemsToTable items
         @timeoutHandle = 0
@@ -163,14 +166,14 @@ $ ->
         addURLButton.addClass('green')
         setTimeout () ->
           addURLButton.removeClass('green')
-        , 2400
+        , 2000
       error: (response, error) ->
         errSpan = $("#btn-row .error")
         addURLButton.addClass('red')
         setTimeout () ->
           errSpan.empty()
           addURLButton.removeClass('red')
-        , 2400
+        , 2000
         if response.status == 500
           errSpan.html("Internal Error, sorry :-/")
         else if response.status == 422
