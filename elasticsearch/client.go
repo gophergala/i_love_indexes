@@ -92,7 +92,7 @@ func ListDocuments(_struct Document) ([]Document, error) {
 }
 
 func list(_type string) (*elastigo.SearchResult, error) {
-	res, err := elastigo.Search(defaultIndex).Type(_type).Result(defaultConn)
+	res, err := elastigo.Search(defaultIndex).Type(_type).Size("100").Result(defaultConn)
 	if err != nil {
 		return nil, errgo.Mask(err)
 	}
