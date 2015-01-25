@@ -113,7 +113,10 @@ $ ->
             duration: 2000
 
     search: (query) ->
-      if query != @query then @query = query
+      if query != @query
+        @query = query
+        @from = 0
+
       # Cancel waiting search query
       if @timeoutHandle != 0
         clearTimeout @timeoutHandle
