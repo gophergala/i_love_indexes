@@ -80,7 +80,7 @@ func (i *IndexItem) SetSizeFromHeader() error {
 	return nil
 }
 
-func SearchIndexItemsPerName(from string, name string) []*IndexItem {
+func SearchIndexItemsPerName(from string, typ string, name string) []*IndexItem {
 	isRegexp := false
 	if strings.ContainsAny(name, "*?+[]{}.") {
 		_, err := regexp.Compile(name)
@@ -144,17 +144,47 @@ func SearchIndexItemsPerName(from string, name string) []*IndexItem {
 			},
 		}
 	} else {
-		// Full-text query
-		query = map[string]interface{}{
-			"query": map[string]interface{}{
-				"match": map[string]interface{}{
-					"escaped_name": map[string]interface{}{
-						"query":     name,
-						"fuzziness": "auto",
-						"type":      "phrase",
+		if typ != "any" {
+			var typRegexp string
+			switch typ {
+			case "video":
+				typRegexp = `.*\.(mp4|flv|mkv|avi)`
+			case "audio":
+				typRegexp = `.*\.(mp3|m4a|flac|ogg|wav)`
+			case "ebook":
+				typRegexp = `.*\.(mobi|epub|cbz|djvu)`
+			}
+			query = map[string]interface{}{
+				"query": map[string]interface{}{
+					"bool": map[string]interface{}{
+						"must": map[string]interface{}{
+							"match": map[string]interface{}{
+								"escaped_name": map[string]interface{}{
+									"query":     name,
+									"fuzziness": "auto",
+									"type":      "phrase",
+								},
+							},
+							"regexp": map[string]interface{}{
+								"name": typRegexp,
+							},
+						},
 					},
 				},
-			},
+			}
+		} else {
+			// Full-text query
+			query = map[string]interface{}{
+				"query": map[string]interface{}{
+					"match": map[string]interface{}{
+						"escaped_name": map[string]interface{}{
+							"query":     name,
+							"fuzziness": "auto",
+							"type":      "phrase",
+						},
+					},
+				},
+			}
 		}
 	}
 
