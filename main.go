@@ -42,6 +42,7 @@ func mainWebServer() {
 	configureWorkers()
 	router := mux.NewRouter()
 	router.HandleFunc("/", handleIndex)
+	router.HandleFunc("/about", handleAbout)
 	router.Handle("/api/{any:.*}", api.NewAPI())
 	setupTrain(router)
 
@@ -93,6 +94,34 @@ func handleIndex(res http.ResponseWriter, req *http.Request) {
 		"stylesheet_tag_with_param": train.StylesheetTagWithParam,
 	})
 	_, err := tpl.ParseFiles("views/index.html")
+	if err != nil {
+		res.WriteHeader(500)
+		fmt.Fprintln(res, err)
+		return
+	}
+
+	buffer := &bytes.Buffer{}
+	err = tpl.Execute(buffer, nil)
+	if err != nil {
+		res.WriteHeader(500)
+		fmt.Fprintln(res, err)
+		return
+	}
+
+	res.WriteHeader(200)
+	buffer.WriteTo(res)
+}
+
+func handleAbout(res http.ResponseWriter, req *http.Request) {
+	tpl := template.New("about.html")
+
+	// Adding train helpers
+	tpl.Funcs(template.FuncMap{
+		"javascript_tag":            train.JavascriptTag,
+		"stylesheet_tag":            train.StylesheetTag,
+		"stylesheet_tag_with_param": train.StylesheetTagWithParam,
+	})
+	_, err := tpl.ParseFiles("views/about.html")
 	if err != nil {
 		res.WriteHeader(500)
 		fmt.Fprintln(res, err)

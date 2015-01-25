@@ -150,7 +150,7 @@ func SearchIndexItemsPerName(name string) []*IndexItem {
 				"match": map[string]interface{}{
 					"escaped_name": map[string]interface{}{
 						"query":     name,
-						"fuzziness": 2,
+						"fuzziness": "auto",
 						"type":      "phrase",
 					},
 				},

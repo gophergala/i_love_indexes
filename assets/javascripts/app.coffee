@@ -5,6 +5,7 @@ $ ->
   indicesTableBody = $('#indices table tbody')
   urlInput = $('input[type=url]')
   addURLForm = $('#add-url-form')
+  addURLButton = $('#add-url')
   listURLsButton = $('#list-url')
 
   # Hide table
@@ -24,7 +25,7 @@ $ ->
     e.preventDefault()
 
   addURLForm.on "submit", (e) ->
-    addIndexOf urlInput.val() if urlInput.val()
+    addIndexOf urlInput.val() #if urlInput.val()
     e.preventDefault()
 
   insertIntoTableBody = (tbody, indexItem, fields) ->
@@ -130,11 +131,17 @@ $ ->
         $("#btn-row .error").val("")
         urlInput.val("")
         realTimeIndexesOf.enable()
+        addURLButton.addClass('green')
+        setTimeout () ->
+          addURLButton.removeClass('green')
+        , 2400
       error: (response, error) ->
         errSpan = $("#btn-row .error")
+        addURLButton.addClass('red')
         setTimeout () ->
           errSpan.empty()
-        , 3000
+          addURLButton.removeClass('red')
+        , 2400
         if response.status == 500
           errSpan.html("Internal Error, sorry :-/")
         else if response.status == 422
