@@ -17,17 +17,15 @@ body
   display: none
   margin: 0 auto
 
-#add-url
-  span.error
-    color: red
-    text-align: left
-    height: 0
-
 #btn-row
   display: inline-flex
   justify-content: flex-end
-  button:first-child
-    margin-right: 10px
+  align-items: baseline
+  button
+    margin-left: 10px
+  span
+    flex: 1
+    text-align: left
 
 // Override font stack set by pure
 html, button, input, select, textarea, .pure-g [class *= "pure-u"]

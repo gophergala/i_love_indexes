@@ -24,7 +24,7 @@ $ ->
     e.preventDefault()
 
   addURLForm.on "submit", (e) ->
-    addIndexOf urlInput.val()
+    addIndexOf urlInput.val() if urlInput.val()
     e.preventDefault()
 
   insertIntoTableBody = (tbody, indexItem, fields) ->
@@ -87,6 +87,7 @@ $ ->
             indicesTable.fadeOut ->
               resultsTable.fadeIn()
 
+
         @timeoutHandle = 0
       , 300
   )()
@@ -99,17 +100,20 @@ $ ->
       url: '/api/indices'
       data: JSON.stringify url: url
       success: (data) ->
-        $("#add-url .error").addClass("hidden")
-        $("#add-url .error").val("")
+        $("#btn-row .error").addClass("hidden")
+        $("#btn-row .error").val("")
+        urlInput.val("")
       error: (response, error) ->
-        errSpan = $("#add-url .error")
+        errSpan = $("#btn-row .error")
+        setTimeout () ->
+          errSpan.empty()
+        , 3000
         if response.status == 500
           errSpan.html("Internal Error, sorry :-/")
         else if response.status == 422
           errors = response.responseJSON.errors
-          out = "<ul>"
+          out = "<pre>"
           Object.keys(errors).forEach (key) ->
             errors[key].forEach (err) ->
-              out += "<li>" + key + " -> " + err + "</li>"
-          out += "<ul>"
-          errSpan.html(out)
+              out += key + ": " + err + "\n"
+          errSpan.html(out + "</pre>")
