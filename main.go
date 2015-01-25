@@ -64,15 +64,6 @@ func mainCrawler() {
 }
 
 func configureWorkers() {
-	workers.Configure(map[string]string{
-		"server":   redisHost(),
-		"database": "0",
-		"pool":     "30",
-		"process":  "1",
-	})
-}
-
-func redisHost() string {
 	redisURL := "redis://localhost:6379"
 	if os.Getenv("REDIS_URL") != "" {
 		redisURL = os.Getenv("REDIS_URL")
@@ -81,7 +72,21 @@ func redisHost() string {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return u.Host
+	password := ""
+	if u.User != nil {
+		p, ok := u.User.Password()
+		if ok {
+			password = p
+		}
+	}
+
+	workers.Configure(map[string]string{
+		"server":   u.Host,
+		"password": password,
+		"database": "0",
+		"pool":     "30",
+		"process":  "1",
+	})
 }
 
 func handleIndex(res http.ResponseWriter, req *http.Request) {
