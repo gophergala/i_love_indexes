@@ -71,6 +71,7 @@ $ ->
     tickHandle: 0
 
     enable: () ->
+      return if @tickHandle != 0
       @update()
       @tickHandle = setInterval () =>
         @update()
