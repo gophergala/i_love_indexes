@@ -1,6 +1,8 @@
+/assets/javascripts/moment.min.js  ->  /assets/javascripts/moment.min-85e5d41eb9c451c16d4e784aec13d948.js
+/assets/stylesheets/app.css  ->  /assets/stylesheets/app-d8bc25585f44cd391c6a259dcf53e8eb.css
+/assets/stylesheets/base-min.css  ->  /assets/stylesheets/base-min-31289f9926c6e8ecd85a72309c4d3b1d.css
+/assets/stylesheets/materialize.css  ->  /assets/stylesheets/materialize-3d5c9a9861f3ab907820ad7987a410ba.css
+/assets/stylesheets/pure-min.css  ->  /assets/stylesheets/pure-min-3b6d8d3def973ae708de5a4b68e8fbba.css
+/assets/javascripts/app.js  ->  /assets/javascripts/app-bbb8f1cbcca7e2a63839f6e9ae6805a1.js
 /assets/javascripts/jquery-scrollto.js  ->  /assets/javascripts/jquery-scrollto-657e33f2ce9e4adfe3dcaba533a74c81.js
 /assets/javascripts/materialize.js  ->  /assets/javascripts/materialize-3a2ac50f76212d6074b7c180e5423d01.js
-/assets/javascripts/moment.min.js  ->  /assets/javascripts/moment.min-85e5d41eb9c451c16d4e784aec13d948.js
-/assets/stylesheets/app.css  ->  /assets/stylesheets/app-9d90bdb845ff607a30bf87050c6f351e.css
-/assets/stylesheets/materialize.css  ->  /assets/stylesheets/materialize-3d5c9a9861f3ab907820ad7987a410ba.css
-/assets/javascripts/app.js  ->  /assets/javascripts/app-bbb8f1cbcca7e2a63839f6e9ae6805a1.js
