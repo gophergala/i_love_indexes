@@ -34,7 +34,7 @@ The API send crawling tasks to the Crawler which handles them.
 
 The crawler send indexation data to Elasticsearch in order to be able to query it later.
 
-## Feature
+## Features
 
 What can you do with this stuff?!
 
