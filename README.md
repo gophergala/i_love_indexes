@@ -57,13 +57,17 @@ What can you do with this stuff?!
 * Writing in the search field trigger a fuzzy search among all the indexed
   content and return in a paginated way the results.
 
-* You can also used regexp over the filenames, try `.*\.mkv` for instance
+* You can also use regexp over the filenames, try `.*\.mkv` for instance
 
 * If you are looking for a particular type of files, we are making category
   sorting: `audio`, `video`, `ebook`, it will automatically restrain your
   search scope to this category
 
-- For MP3s, download first KB to get tags and index id3v2 tags (improve search), example
+* For MP3s, we download the first KB of the file then break the connection
+  with the webserver to reduce the bandwidth consumption.
+
+* For all the network related operation, there is a threashold of the maximal
+  number of connections per host, as a result no one get DoS-ed.
 
 ## Example
 
@@ -73,6 +77,9 @@ Basterds_)[http://index.l3o.eu:8080/Quentin%20Tarantino%27s%20Inglourious%20Bast
 You can search for `basterds` and find all the different songs of the album,
 but as we are doing fuzzy matching, you can make typos and type `bastrd`, it
 will still work!
+
+You can have an insight of its power there: https://www.youtube.com/watch?v=WI0RJbco_l4
+mp3 headers have been fetched to get their metadata.
 
 ## Disclaimer
 
